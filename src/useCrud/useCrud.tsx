@@ -1,9 +1,5 @@
 import React from "react"
-
-import { deleteDoc, doc } from "firebase/firestore";
-
-import useSWR from "swr"
-
+import { collection, deleteDoc, doc, getDoc, getDocs } from "firebase/firestore";
 import { Text } from "@mantine/core"
 import { useModals } from "@mantine/modals";
 import { showNotification } from "@mantine/notifications";
@@ -11,25 +7,35 @@ import { showNotification } from "@mantine/notifications";
 import CheckIcon from "../components/icons/CheckIcon";
 import { useFirebase } from "../firebase/config";
 import { useCrudProps } from "../types";
+import useCreateOrUpdate from "../useCreateOrUpdate";
 
 function useCrud<T>({
-    collection,
-    firebaseConfig,
-    label
+    /// Collection
+    c,
+    label,
+    formFields
 }: useCrudProps<T>) {
 
     const modals = useModals()
-    const { db } = useFirebase(firebaseConfig)
+    const { db } = useFirebase()
+    const { create, update } = useCreateOrUpdate({ collection: c, formFields })
 
     return {
-        //Create
-        create: () => {/*TODO*/ },
-        //Read
-        getAll: () => {/*TODO*/ },
-        getById: (_id: string) => {/*TODO*/ },
-        //Update
-        update: (_id: string) => {/*TODO*/ },
-        //Delete
+        create: () => {
+            create()
+        },
+        getAll: async () => {
+            const docs = await getDocs(collection(db, c))
+            const final: any[] = []
+            docs.forEach((d) => {
+                final.push(d)
+            })
+            return final as Partial<T>[]
+        },
+        getById: async (id: string) => {
+            return (await getDoc(doc(db, c, id))).data() as Partial<T>
+        },
+        update: (idToUpdate: string) => update(idToUpdate),
         delete: (idToDelete: string) => {
             modals.openConfirmModal({
                 title: `Delete ${label}`,
@@ -47,7 +53,7 @@ function useCrud<T>({
                         autoClose: false,
                         disallowClose: true,
                     });
-                    await deleteDoc(doc(db, collection, idToDelete))
+                    await deleteDoc(doc(db, c, idToDelete))
                     showNotification({
                         id: "delete-data",
                         color: 'teal',
