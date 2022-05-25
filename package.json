@@ -63,7 +63,6 @@
 		"@mantine/hooks": "^4.2.6",
 		"@mantine/modals": "^4.2.6",
 		"@mantine/notifications": "^4.2.6",
-		"firebase": "^9.8.1",
-		"swr": "^1.3.0"
+		"firebase": "^9.8.1"
 	}
 }
